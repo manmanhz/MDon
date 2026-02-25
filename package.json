@@ -1,0 +1,35 @@
+{
+  "name": "monk",
+  "version": "1.0.0",
+  "description": "A Typora-like Markdown editor with real-time preview",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"electron .\"",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "electron"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.3.3",
+    "markdown-it": "^14.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "concurrently": "^8.2.2",
+    "jsdom": "^14.1.0",
+    "vite": "^5.4.21",
+    "vitest": "^1.6.1"
+  }
+}

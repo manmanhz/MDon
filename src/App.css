@@ -9,20 +9,33 @@ body {
 }
 
 .app {
-  height: 100vh;
   display: flex;
-  flex-direction: column;
+  height: 100vh;
 }
 
 .editor {
-  width: 100%;
+  width: 50%;
+  height: 100%;
+}
+
+.preview {
+  width: 50%;
   height: 100%;
   padding: 20px;
-  border: none;
-  outline: none;
-  resize: none;
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 16px;
-  line-height: 1.6;
-  background: #fafafa;
+  overflow-y: auto;
+  border-left: 1px solid #ddd;
+  background: white;
 }
+
+/* Markdown preview styles */
+.preview h1 { font-size: 2em; margin: 0.67em 0; }
+.preview h2 { font-size: 1.5em; margin: 0.75em 0; }
+.preview h3 { font-size: 1.17em; margin: 0.83em 0; }
+.preview p { margin: 1em 0; }
+.preview code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+.preview pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+.preview pre code { background: none; padding: 0; }
+.preview blockquote { border-left: 4px solid #ddd; padding-left: 16px; color: #666; }
+.preview ul, .preview ol { padding-left: 2em; margin: 1em 0; }
+.preview a { color: #0366d6; }
+.preview img { max-width: 100%; }

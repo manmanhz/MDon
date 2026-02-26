@@ -3,27 +3,33 @@ import { parseMarkdown } from '../utils/parser';
 
 function WysiwygEditor({ content, onChange }) {
   const editorRef = useRef(null);
-  const lastContentRef = useRef(content);
+  const isInternalChange = useRef(false);
 
-  // Initialize or update content only when external content changes
+  // Initialize content on mount
+  useEffect(() => {
+    if (editorRef.current && !editorRef.current.innerText) {
+      editorRef.current.innerHTML = parseMarkdown(content);
+    }
+  }, []); // Only on mount
+
+  // Update when external content changes (e.g., file opened)
   useEffect(() => {
     if (!editorRef.current) return;
 
-    const currentEditorText = editorRef.current.innerText || '';
-    const newContent = content;
-
-    // Only update if content actually changed externally
-    if (newContent !== lastContentRef.current && newContent !== currentEditorText) {
-      const html = parseMarkdown(newContent);
-      editorRef.current.innerHTML = html;
-      lastContentRef.current = newContent;
+    const currentText = editorRef.current.innerText || '';
+    // Only update if content changed externally and we're not currently editing
+    if (content !== currentText && !isInternalChange.current) {
+      editorRef.current.innerHTML = parseMarkdown(content);
     }
   }, [content]);
 
   const handleInput = useCallback((e) => {
-    // Pass the text content - no re-rendering during typing
+    isInternalChange.current = true;
     onChange(e.target.innerText);
-    lastContentRef.current = e.target.innerText;
+    // Small delay to allow onChange to propagate, then re-render
+    setTimeout(() => {
+      isInternalChange.current = false;
+    }, 0);
   }, [onChange]);
 
   return (

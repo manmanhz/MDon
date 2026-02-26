@@ -5,6 +5,9 @@ const fs = require('fs');
 let mainWindow;
 let currentFilePath = null;
 
+// Vite dev server URL
+const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -18,11 +21,8 @@ function createWindow() {
     title: 'Monk'
   });
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
+  // Always use dev server URL in development
+  mainWindow.loadURL(VITE_DEV_SERVER_URL);
 }
 
 function createMenu() {

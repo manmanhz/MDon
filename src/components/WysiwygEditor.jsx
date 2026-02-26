@@ -1,48 +1,50 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { parseMarkdown } from '../utils/parser';
 
 function WysiwygEditor({ content, onChange }) {
-  const containerRef = useRef(null);
-  const textareaRef = useRef(null);
-  const [html, setHtml] = useState('');
+  const editorRef = useRef(null);
+  const isRendering = useRef(false);
 
-  // Parse markdown to HTML
+  // Initial render
   useEffect(() => {
-    setHtml(parseMarkdown(content));
-  }, [content]);
+    if (editorRef.current && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = parseMarkdown(content);
+    }
+  }, []);
 
-  // Sync scroll between textarea and preview
-  const handleScroll = () => {
-    if (containerRef.current) {
-      const preview = containerRef.current.querySelector('.wysiwyg-preview');
-      if (preview && textareaRef.current) {
-        preview.scrollTop = textareaRef.current.scrollTop;
-      }
+  const handleInput = (e) => {
+    const text = e.target.innerText;
+    onChange(text);
+  };
+
+  // Re-render markdown periodically or on blur
+  const handleBlur = () => {
+    if (editorRef.current) {
+      isRendering.current = true;
+      editorRef.current.innerHTML = parseMarkdown(editorRef.current.innerText);
+      isRendering.current = false;
     }
   };
 
-  // Handle textarea input
-  const handleInput = (e) => {
-    onChange(e.target.value);
+  const handleKeyDown = (e) => {
+    // Handle Enter key - add newline without re-rendering immediately
+    if (e.key === 'Enter') {
+      // Let the default behavior happen (add newline)
+      // Don't re-render while typing
+    }
   };
 
   return (
-    <div ref={containerRef} className="wysiwyg-container">
-      {/* Rendered preview layer */}
-      <div
-        className="wysiwyg-preview"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-      {/* Transparent editing layer */}
-      <textarea
-        ref={textareaRef}
-        className="wysiwyg-textarea"
-        value={content}
-        onChange={handleInput}
-        onScroll={handleScroll}
-        spellCheck={false}
-      />
-    </div>
+    <div
+      ref={editorRef}
+      className="wysiwyg-editor"
+      contentEditable={true}
+      onInput={handleInput}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      suppressContentEditableWarning={true}
+      spellCheck={false}
+    />
   );
 }
 

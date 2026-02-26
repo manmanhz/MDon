@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import WysiwygEditor from './components/WysiwygEditor';
+import TipTapEditor from './components/TipTapEditor';
+import TableOfContents from './components/TableOfContents';
+import { useHeadings } from './hooks/useHeadings';
 import './App.css';
 
 function App() {
   const [content, setContent] = useState('# Hello Monk\n\nStart writing...');
   const [currentFilePath, setCurrentFilePath] = useState(null);
+  const [showToc, setShowToc] = useState(true);
+
+  const headings = useHeadings(content);
 
   const handleNew = useCallback(() => {
     setContent('# New Document\n\nStart writing...');
@@ -20,6 +25,11 @@ function App() {
     }
   }, [currentFilePath, content]);
 
+  const handleTocClick = (index) => {
+    // TODO: scroll to heading in editor
+    console.log('TOC clicked:', index);
+  };
+
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onNewFile(() => handleNew());
@@ -34,7 +44,12 @@ function App() {
 
   return (
     <div className="app">
-      <WysiwygEditor content={content} onChange={setContent} />
+      {showToc && (
+        <aside className="toc-sidebar">
+          <TableOfContents headings={headings} onClick={handleTocClick} />
+        </aside>
+      )}
+      <TipTapEditor content={content} onChange={setContent} />
     </div>
   );
 }

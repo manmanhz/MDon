@@ -6,9 +6,9 @@ let mainWindow;
 let currentFilePath = null;
 
 // Vite dev server URL
-const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 
-function createWindow() {
+function createWindow(filePathToOpen = null) {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -21,8 +21,26 @@ function createWindow() {
     title: 'Monk'
   });
 
-  // Always use dev server URL in development
-  mainWindow.loadURL(VITE_DEV_SERVER_URL);
+  // Load URL based on environment
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    // Production: load from built files
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
+
+  // If a file was passed as argument, open it after window loads
+  if (filePathToOpen) {
+    mainWindow.webContents.on('did-finish-load', () => {
+      try {
+        const content = fs.readFileSync(filePathToOpen, 'utf-8');
+        currentFilePath = filePathToOpen;
+        mainWindow.webContents.send('file-opened', { filePath: filePathToOpen, content });
+      } catch (error) {
+        console.error('Error opening file:', error);
+      }
+    });
+  }
 }
 
 function createMenu() {
@@ -127,7 +145,19 @@ ipcMain.handle('save-file', async (event, { filePath, content }) => {
 });
 
 app.whenReady().then(() => {
-  createWindow();
+  // Check for file path argument (skip first 2 args: electron and script path)
+  const args = process.argv.slice(2);
+  let filePathToOpen = null;
+
+  for (const arg of args) {
+    // If arg doesn't start with -, it's likely a file path
+    if (!arg.startsWith('-') && (arg.endsWith('.md') || arg.endsWith('.markdown') || arg.endsWith('.txt'))) {
+      filePathToOpen = arg;
+      break;
+    }
+  }
+
+  createWindow(filePathToOpen);
   createMenu();
 });
 

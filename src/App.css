@@ -33,7 +33,9 @@ body {
   line-height: 1.8;
   background: #fefefe;
   color: #333;
-  pointer-events: none; /* Let clicks pass through to textarea */
+  pointer-events: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* Textarea layer - transparent editing */
@@ -54,9 +56,19 @@ body {
   color: transparent;
   caret-color: #333;
   overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-/* Make textarea text transparent but visible to caret */
+/* Match textarea text properties exactly with preview */
+.wysiwyg-textarea,
+.wysiwyg-preview {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-rendering: auto;
+}
+
+/* Make textarea text transparent but keep caret */
 .wysiwyg-textarea::selection {
   background: rgba(0, 100, 255, 0.2);
 }

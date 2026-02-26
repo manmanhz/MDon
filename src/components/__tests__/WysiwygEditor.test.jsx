@@ -3,80 +3,59 @@ import WysiwygEditor from '../WysiwygEditor';
 import { describe, it, expect, vi } from 'vitest';
 
 describe('WysiwygEditor', () => {
-  it('should render editable div', () => {
+  it('should render container with textarea', () => {
     render(<WysiwygEditor content="" onChange={() => {}} />);
-    const editor = screen.getByRole('textbox');
-    expect(editor).toBeInTheDocument();
-    expect(editor).toHaveAttribute('contenteditable', 'true');
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toBeInTheDocument();
+    expect(textarea).toHaveAttribute('spellcheck', 'false');
+  });
+
+  it('should display initial content in textarea', () => {
+    const content = '# Hello Monk';
+    render(<WysiwygEditor content={content} onChange={() => {}} />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea.value).toBe(content);
   });
 
   it('should call onChange when input changes', () => {
     const onChange = vi.fn();
     render(<WysiwygEditor content="" onChange={onChange} />);
-    const editor = screen.getByRole('textbox');
+    const textarea = screen.getByRole('textbox');
 
-    fireEvent.input(editor, { target: { innerText: '# New Content' } });
+    fireEvent.change(textarea, { target: { value: '# New Content' } });
 
     expect(onChange).toHaveBeenCalledWith('# New Content');
   });
 
-  it('should have editor class', () => {
+  it('should render preview layer', () => {
+    render(<WysiwygEditor content="# Title" onChange={() => {}} />);
+    const preview = document.querySelector('.wysiwyg-preview');
+    expect(preview).toBeInTheDocument();
+  });
+
+  it('should have container class', () => {
     render(<WysiwygEditor content="" onChange={() => {}} />);
-    const editor = screen.getByRole('textbox');
-    expect(editor).toHaveClass('wysiwyg-editor');
+    const container = document.querySelector('.wysiwyg-container');
+    expect(container).toBeInTheDocument();
   });
 
-  it('should preserve content after typing and not revert', () => {
-    const onChange = vi.fn();
-    render(<WysiwygEditor content="# Hello" onChange={onChange} />);
-    const editor = screen.getByRole('textbox');
-
-    // Type more content - set innerText directly (jsdom limitation)
-    editor.innerText = '# Hello World';
-    fireEvent.input(editor, { target: { innerText: '# Hello World' } });
-
-    // Content should be preserved
-    expect(editor.innerText).toBe('# Hello World');
-    expect(onChange).toHaveBeenCalledWith('# Hello World');
-  });
-
-  it('should preserve content after pressing Enter', () => {
+  it('should preserve content after typing', () => {
     const onChange = vi.fn();
     render(<WysiwygEditor content="Line 1" onChange={onChange} />);
-    const editor = screen.getByRole('textbox');
+    const textarea = screen.getByRole('textbox');
 
-    // Simulate pressing Enter by adding newline
-    editor.innerText = 'Line 1\nLine 2';
-    fireEvent.input(editor, { target: { innerText: 'Line 1\nLine 2' } });
+    fireEvent.change(textarea, { target: { value: 'Line 1\nLine 2' } });
 
-    // Content should be preserved with newline
-    expect(editor.innerText).toBe('Line 1\nLine 2');
+    // Check that onChange was called with new content
     expect(onChange).toHaveBeenCalledWith('Line 1\nLine 2');
-  });
-
-  it('should not revert content when typing continuously', () => {
-    const onChange = vi.fn();
-    render(<WysiwygEditor content="# Title" onChange={onChange} />);
-    const editor = screen.getByRole('textbox');
-
-    // First input
-    editor.innerText = '# Title\n';
-    fireEvent.input(editor, { target: { innerText: '# Title\n' } });
-
-    // Second input - add more content
-    editor.innerText = '# Title\nParagraph';
-    fireEvent.input(editor, { target: { innerText: '# Title\nParagraph' } });
-
-    expect(editor.innerText).toBe('# Title\nParagraph');
   });
 
   it('should handle empty content', () => {
     const onChange = vi.fn();
     render(<WysiwygEditor content="" onChange={onChange} />);
-    const editor = screen.getByRole('textbox');
+    const textarea = screen.getByRole('textbox');
 
-    editor.innerText = 'New text';
-    fireEvent.input(editor, { target: { innerText: 'New text' } });
+    fireEvent.change(textarea, { target: { value: 'New text' } });
 
     expect(onChange).toHaveBeenCalledWith('New text');
   });

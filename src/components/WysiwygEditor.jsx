@@ -1,47 +1,48 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { parseMarkdown } from '../utils/parser';
 
 function WysiwygEditor({ content, onChange }) {
-  const editorRef = useRef(null);
-  const isInternalChange = useRef(false);
+  const containerRef = useRef(null);
+  const textareaRef = useRef(null);
+  const [html, setHtml] = useState('');
 
-  // Initialize content on mount
+  // Parse markdown to HTML
   useEffect(() => {
-    if (editorRef.current && !editorRef.current.innerText) {
-      editorRef.current.innerHTML = parseMarkdown(content);
-    }
-  }, []); // Only on mount
-
-  // Update when external content changes (e.g., file opened)
-  useEffect(() => {
-    if (!editorRef.current) return;
-
-    const currentText = editorRef.current.innerText || '';
-    // Only update if content changed externally and we're not currently editing
-    if (content !== currentText && !isInternalChange.current) {
-      editorRef.current.innerHTML = parseMarkdown(content);
-    }
+    setHtml(parseMarkdown(content));
   }, [content]);
 
-  const handleInput = useCallback((e) => {
-    isInternalChange.current = true;
-    onChange(e.target.innerText);
-    // Small delay to allow onChange to propagate, then re-render
-    setTimeout(() => {
-      isInternalChange.current = false;
-    }, 0);
-  }, [onChange]);
+  // Sync scroll between textarea and preview
+  const handleScroll = () => {
+    if (containerRef.current) {
+      const preview = containerRef.current.querySelector('.wysiwyg-preview');
+      if (preview && textareaRef.current) {
+        preview.scrollTop = textareaRef.current.scrollTop;
+      }
+    }
+  };
+
+  // Handle textarea input
+  const handleInput = (e) => {
+    onChange(e.target.value);
+  };
 
   return (
-    <div
-      ref={editorRef}
-      className="wysiwyg-editor"
-      contentEditable={true}
-      onInput={handleInput}
-      suppressContentEditableWarning={true}
-      role="textbox"
-      spellCheck={false}
-    />
+    <div ref={containerRef} className="wysiwyg-container">
+      {/* Rendered preview layer */}
+      <div
+        className="wysiwyg-preview"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      {/* Transparent editing layer */}
+      <textarea
+        ref={textareaRef}
+        className="wysiwyg-textarea"
+        value={content}
+        onChange={handleInput}
+        onScroll={handleScroll}
+        spellCheck={false}
+      />
+    </div>
   );
 }
 

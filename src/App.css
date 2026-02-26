@@ -12,52 +12,87 @@ body {
   height: 100vh;
 }
 
-/* WYSIWYG Editor Styles */
-.wysiwyg-editor {
+/* WYSIWYG Container with dual layers */
+.wysiwyg-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Preview layer - rendered markdown */
+.wysiwyg-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   padding: 40px 60px;
-  outline: none;
   overflow-y: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.8;
   background: #fefefe;
   color: #333;
+  pointer-events: none; /* Let clicks pass through to textarea */
 }
 
-/* Rendered Markdown styles inside editor */
-.wysiwyg-editor h1 {
+/* Textarea layer - transparent editing */
+.wysiwyg-textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 40px 60px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  background: transparent;
+  color: transparent;
+  caret-color: #333;
+  overflow-y: auto;
+}
+
+/* Make textarea text transparent but visible to caret */
+.wysiwyg-textarea::selection {
+  background: rgba(0, 100, 255, 0.2);
+}
+
+/* Rendered Markdown styles */
+.wysiwyg-preview h1 {
   font-size: 2em;
   font-weight: 600;
   margin: 0.67em 0;
 }
 
-.wysiwyg-editor h2 {
+.wysiwyg-preview h2 {
   font-size: 1.5em;
   font-weight: 600;
   margin: 0.75em 0;
 }
 
-.wysiwyg-editor h3 {
+.wysiwyg-preview h3 {
   font-size: 1.25em;
   font-weight: 600;
   margin: 0.83em 0;
 }
 
-.wysiwyg-editor p {
+.wysiwyg-preview p {
   margin: 1em 0;
 }
 
-.wysiwyg-editor strong {
+.wysiwyg-preview strong {
   font-weight: 600;
 }
 
-.wysiwyg-editor em {
+.wysiwyg-preview em {
   font-style: italic;
 }
 
-.wysiwyg-editor code {
+.wysiwyg-preview code {
   background: #f6f8fa;
   padding: 0.2em 0.4em;
   border-radius: 3px;
@@ -65,7 +100,7 @@ body {
   font-size: 85%;
 }
 
-.wysiwyg-editor pre {
+.wysiwyg-preview pre {
   background: #f6f8fa;
   padding: 16px;
   border-radius: 6px;
@@ -73,50 +108,50 @@ body {
   margin: 1em 0;
 }
 
-.wysiwyg-editor pre code {
+.wysiwyg-preview pre code {
   background: none;
   padding: 0;
 }
 
-.wysiwyg-editor blockquote {
+.wysiwyg-preview blockquote {
   border-left: 4px solid #dfe2e5;
   padding-left: 16px;
   color: #6a737d;
   margin: 1em 0;
 }
 
-.wysiwyg-editor ul, .wysiwyg-editor ol {
+.wysiwyg-preview ul, .wysiwyg-preview ol {
   padding-left: 2em;
   margin: 1em 0;
 }
 
-.wysiwyg-editor li {
+.wysiwyg-preview li {
   margin: 0.25em 0;
 }
 
-.wysiwyg-editor a {
+.wysiwyg-preview a {
   color: #0366d6;
   text-decoration: none;
 }
 
-.wysiwyg-editor a:hover {
+.wysiwyg-preview a:hover {
   text-decoration: underline;
 }
 
 /* Custom scrollbar */
-.wysiwyg-editor::-webkit-scrollbar {
+.wysiwyg-container::-webkit-scrollbar {
   width: 8px;
 }
 
-.wysiwyg-editor::-webkit-scrollbar-track {
+.wysiwyg-container::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.wysiwyg-editor::-webkit-scrollbar-thumb {
+.wysiwyg-container::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 4px;
 }
 
-.wysiwyg-editor::-webkit-scrollbar-thumb:hover {
+.wysiwyg-container::-webkit-scrollbar-thumb:hover {
   background: #999;
 }

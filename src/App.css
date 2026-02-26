@@ -9,17 +9,16 @@ body {
 }
 
 .app {
-  display: flex;
   height: 100vh;
 }
 
-.editor {
-  width: 50%;
+/* WYSIWYG Editor Styles */
+.wysiwyg-editor {
+  width: 100%;
   height: 100%;
   padding: 40px 60px;
-  border: none;
   outline: none;
-  resize: none;
+  overflow-y: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.8;
@@ -27,32 +26,38 @@ body {
   color: #333;
 }
 
-.preview {
-  width: 50%;
-  height: 100%;
-  padding: 40px 60px;
-  overflow-y: auto;
-  background: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.8;
-  color: #333;
-}
-
-/* Typography matching editor */
-.preview h1, .preview h2, .preview h3,
-.preview h4, .preview h5, .preview h6 {
+/* Rendered Markdown styles inside editor */
+.wysiwyg-editor h1 {
+  font-size: 2em;
   font-weight: 600;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
+  margin: 0.67em 0;
 }
 
-.preview h1 { font-size: 2em; }
-.preview h2 { font-size: 1.5em; }
-.preview h3 { font-size: 1.25em; }
+.wysiwyg-editor h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0.75em 0;
+}
 
-.preview p { margin: 1em 0; }
+.wysiwyg-editor h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0.83em 0;
+}
 
-.preview code {
+.wysiwyg-editor p {
+  margin: 1em 0;
+}
+
+.wysiwyg-editor strong {
+  font-weight: 600;
+}
+
+.wysiwyg-editor em {
+  font-style: italic;
+}
+
+.wysiwyg-editor code {
   background: #f6f8fa;
   padding: 0.2em 0.4em;
   border-radius: 3px;
@@ -60,7 +65,7 @@ body {
   font-size: 85%;
 }
 
-.preview pre {
+.wysiwyg-editor pre {
   background: #f6f8fa;
   padding: 16px;
   border-radius: 6px;
@@ -68,89 +73,50 @@ body {
   margin: 1em 0;
 }
 
-.preview pre code {
+.wysiwyg-editor pre code {
   background: none;
   padding: 0;
-  font-size: 14px;
 }
 
-.preview blockquote {
+.wysiwyg-editor blockquote {
   border-left: 4px solid #dfe2e5;
   padding-left: 16px;
   color: #6a737d;
   margin: 1em 0;
 }
 
-.preview ul, .preview ol {
+.wysiwyg-editor ul, .wysiwyg-editor ol {
   padding-left: 2em;
   margin: 1em 0;
 }
 
-.preview li {
+.wysiwyg-editor li {
   margin: 0.25em 0;
 }
 
-.preview a {
+.wysiwyg-editor a {
   color: #0366d6;
   text-decoration: none;
 }
 
-.preview a:hover {
+.wysiwyg-editor a:hover {
   text-decoration: underline;
 }
 
-.preview img {
-  max-width: 100%;
-  border-radius: 4px;
-}
-
-.preview hr {
-  border: none;
-  border-top: 1px solid #dfe2e5;
-  margin: 2em 0;
-}
-
-.preview table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 1em 0;
-}
-
-.preview th, .preview td {
-  border: 1px solid #dfe2e5;
-  padding: 8px 12px;
-  text-align: left;
-}
-
-.preview th {
-  background: #f6f8fa;
-}
-
 /* Custom scrollbar */
-::-webkit-scrollbar {
+.wysiwyg-editor::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
 }
 
-::-webkit-scrollbar-track {
+.wysiwyg-editor::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.wysiwyg-editor::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.wysiwyg-editor::-webkit-scrollbar-thumb:hover {
   background: #999;
-}
-
-/* Placeholder styling */
-.editor:placeholder {
-  color: #999;
-}
-
-/* Selection */
-.editor::selection {
-  background: #b4d7ff;
 }

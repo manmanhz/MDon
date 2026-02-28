@@ -10,6 +10,40 @@ const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost
 
 console.log('Starting Monk with args:', process.argv);
 
+// Shared helper function to read directory contents recursively
+function readDir(dirPath) {
+  const items = fs.readdirSync(dirPath, { withFileTypes: true });
+  return items
+    .filter(item => {
+      // Filter out hidden files
+      if (item.name.startsWith('.')) return false;
+      if (item.isDirectory()) return true;
+      return /\.(md|markdown|txt)$/i.test(item.name);
+    })
+    .map(item => {
+      const fullPath = path.join(dirPath, item.name);
+      if (item.isDirectory()) {
+        return {
+          name: item.name,
+          path: fullPath,
+          type: 'folder',
+          children: readDir(fullPath)
+        };
+      }
+      return {
+        name: item.name,
+        path: fullPath,
+        type: 'file'
+      };
+    })
+    .sort((a, b) => {
+      // Folders first
+      if (a.type === 'folder' && b.type === 'file') return -1;
+      if (a.type === 'file' && b.type === 'folder') return 1;
+      return a.name.localeCompare(b.name);
+    });
+}
+
 function createWindow(filePathToOpen = null) {
   console.log('Creating window, filePathToOpen:', filePathToOpen);
 
@@ -102,47 +136,18 @@ function createMenu() {
           label: 'Open Folder',
           accelerator: 'CmdOrCtrl+Shift+O',
           click: async () => {
-            const result = await dialog.showOpenDialog(mainWindow, {
-              properties: ['openDirectory']
-            });
-            if (!result.canceled && result.filePaths.length > 0) {
-              const folderPath = result.filePaths[0];
-              // Read folder contents
-              const readDir = (dirPath) => {
-                const items = fs.readdirSync(dirPath, { withFileTypes: true });
-                return items
-                  .filter(item => {
-                    if (item.name.startsWith('.')) return false;
-                    return true;
-                  })
-                  .map(item => {
-                    const fullPath = path.join(dirPath, item.name);
-                    if (item.isDirectory()) {
-                      return {
-                        name: item.name,
-                        path: fullPath,
-                        type: 'folder',
-                        children: readDir(fullPath)
-                      };
-                    }
-                    if (/\.(md|markdown|txt)$/i.test(item.name)) {
-                      return {
-                        name: item.name,
-                        path: fullPath,
-                        type: 'file'
-                      };
-                    }
-                    return null;
-                  })
-                  .filter(Boolean)
-                  .sort((a, b) => {
-                    if (a.type === 'folder' && b.type === 'file') return -1;
-                    if (a.type === 'file' && b.type === 'folder') return 1;
-                    return a.name.localeCompare(b.name);
-                  });
-              };
-              const tree = readDir(folderPath);
-              mainWindow.webContents.send('folder-opened', { folderPath, tree });
+            try {
+              const result = await dialog.showOpenDialog(mainWindow, {
+                properties: ['openDirectory']
+              });
+              if (!result.canceled && result.filePaths.length > 0) {
+                const folderPath = result.filePaths[0];
+                const tree = readDir(folderPath);
+                mainWindow.webContents.send('folder-opened', { folderPath, tree });
+              }
+            } catch (error) {
+              console.error('Error opening folder:', error);
+              dialog.showErrorBox('Error', `Failed to open folder: ${error.message}`);
             }
           }
         },
@@ -230,39 +235,6 @@ ipcMain.handle('open-folder', async () => {
 // IPC handler for reading folder contents
 ipcMain.handle('read-folder', async (event, folderPath) => {
   try {
-    const readDir = (dirPath) => {
-      const items = fs.readdirSync(dirPath, { withFileTypes: true });
-      return items
-        .filter(item => {
-          // 过滤隐藏文件和常见不需要的文件
-          if (item.name.startsWith('.')) return false;
-          if (item.isDirectory()) return true;
-          return /\.(md|markdown|txt)$/i.test(item.name);
-        })
-        .map(item => {
-          const fullPath = path.join(dirPath, item.name);
-          if (item.isDirectory()) {
-            return {
-              name: item.name,
-              path: fullPath,
-              type: 'folder',
-              children: readDir(fullPath)
-            };
-          }
-          return {
-            name: item.name,
-            path: fullPath,
-            type: 'file'
-          };
-        })
-        .sort((a, b) => {
-          // 文件夹优先
-          if (a.type === 'folder' && b.type === 'file') return -1;
-          if (a.type === 'file' && b.type === 'folder') return 1;
-          return a.name.localeCompare(b.name);
-        });
-    };
-
     const tree = readDir(folderPath);
     return { success: true, tree, folderPath };
   } catch (error) {

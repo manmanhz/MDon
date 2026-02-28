@@ -31,10 +31,12 @@ function FileTreeItem({ item, level = 0, onFileClick, onFileDoubleClick }) {
     );
   }
 
-  const handleClick = (e) => {
+  // 使用 onMouseDown 而不是 onClick，因为 onClick 可能在 metaKey 检查前触发
+  const handleMouseDown = (e) => {
     // Command+click (Mac) or Ctrl+click (Windows) opens in new tab
     if (e.metaKey || e.ctrlKey) {
       e.preventDefault();
+      e.stopPropagation();
       onFileDoubleClick(item.path);
     } else {
       onFileClick(item.path);
@@ -45,7 +47,7 @@ function FileTreeItem({ item, level = 0, onFileClick, onFileDoubleClick }) {
     <div
       className="file-tree-file"
       style={{ paddingLeft: `${level * 16 + 8}px` }}
-      onClick={handleClick}
+      onMouseDown={handleMouseDown}
     >
       <span className="file-tree-icon">📄</span>
       <span className="file-tree-name">{item.name}</span>

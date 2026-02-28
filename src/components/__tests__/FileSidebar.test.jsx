@@ -22,14 +22,14 @@ describe('FileSidebar', () => {
   it('calls onFileClick when file single clicked', () => {
     const onFileClick = vi.fn();
     render(<FileSidebar tree={mockTree} onFileClick={onFileClick} onFileDoubleClick={() => {}} />);
-    fireEvent.click(screen.getByText('file2.md'));
+    fireEvent.mouseDown(screen.getByText('file2.md'));
     expect(onFileClick).toHaveBeenCalledWith('/test/file2.md');
   });
 
   it('calls onFileDoubleClick when file Command+clicked', () => {
     const onFileDoubleClick = vi.fn();
     render(<FileSidebar tree={mockTree} onFileClick={() => {}} onFileDoubleClick={onFileDoubleClick} />);
-    fireEvent.click(screen.getByText('file2.md'), { metaKey: true });
+    fireEvent.mouseDown(screen.getByText('file2.md'), { metaKey: true });
     expect(onFileDoubleClick).toHaveBeenCalledWith('/test/file2.md');
   });
 });

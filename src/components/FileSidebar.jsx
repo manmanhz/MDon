@@ -2,7 +2,7 @@ import React from 'react';
 import FileTreeItem from './FileTreeItem';
 import './FileSidebar.css';
 
-function FileSidebar({ tree, folderPath, onFileClick, onFileDoubleClick, onOpenFolder }) {
+function FileSidebar({ tree, onFileClick, onFileDoubleClick, onOpenFolder }) {
   return (
     <div className="file-sidebar">
       <div className="file-sidebar-header">

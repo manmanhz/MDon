@@ -19,6 +19,7 @@ function TabBar({ files, activeFileId, onSelect, onClose }) {
             {file.name}
           </span>
           <button
+            type="button"
             className="tab-close"
             onClick={(e) => {
               e.stopPropagation();

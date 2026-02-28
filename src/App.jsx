@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TipTapEditor from './components/TipTapEditor';
 import TableOfContents from './components/TableOfContents';
 import TabBar from './components/TabBar';
@@ -21,6 +21,9 @@ function App() {
   // 文件夹是否已打开
   const isFolderOpened = folderTree.length > 0;
 
+  // 跟踪是否正在切换文件
+  const isSwitchingFile = useRef(false);
+
   // 当前激活文件
   const activeFile = files.find(f => f.id === activeFileId);
   const content = activeFile?.content || '';
@@ -42,6 +45,9 @@ function App() {
       const confirm = window.confirm(`${activeFile.name} has unsaved changes. Replace anyway?`);
       if (!confirm) return;
     }
+
+    // 标记正在切换文件，防止触发 isModified
+    isSwitchingFile.current = true;
 
     // 检查是否已打开（防止重复打开）- 只有在非强制新tab时才检查
     const existing = files.find(f => f.path === filePath);
@@ -129,13 +135,16 @@ function App() {
 
   // 内容变化
   const handleContentChange = useCallback((newContent) => {
+    // 如果正在切换文件，不标记为已修改
+    if (isSwitchingFile.current) {
+      isSwitchingFile.current = false;
+      return;
+    }
+
     if (activeFileId && activeFile) {
-      // 只有当内容与原文件内容不同时，才标记为已修改
-      if (newContent !== activeFile.content) {
-        setFiles(prev => prev.map(f =>
-          f.id === activeFileId ? { ...f, content: newContent, isModified: true } : f
-        ));
-      }
+      setFiles(prev => prev.map(f =>
+        f.id === activeFileId ? { ...f, content: newContent, isModified: true } : f
+      ));
     }
   }, [activeFileId, activeFile]);
 

@@ -31,12 +31,6 @@ body {
   color: var(--text-primary);
 }
 
-.app {
-  height: 100vh;
-  display: flex;
-  flex-direction: row;
-}
-
 /* Editor Toolbar */
 .editor-toolbar {
   display: flex;
@@ -340,12 +334,6 @@ body {
   width: 16px;
   height: 16px;
   cursor: pointer;
-}
-
-/* App layout with TOC sidebar */
-.app {
-  display: flex;
-  height: 100vh;
 }
 
 /* TOC Sidebar */

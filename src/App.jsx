@@ -129,12 +129,15 @@ function App() {
 
   // 内容变化
   const handleContentChange = useCallback((newContent) => {
-    if (activeFileId) {
-      setFiles(prev => prev.map(f =>
-        f.id === activeFileId ? { ...f, content: newContent, isModified: true } : f
-      ));
+    if (activeFileId && activeFile) {
+      // 只有当内容与原文件内容不同时，才标记为已修改
+      if (newContent !== activeFile.content) {
+        setFiles(prev => prev.map(f =>
+          f.id === activeFileId ? { ...f, content: newContent, isModified: true } : f
+        ));
+      }
     }
-  }, [activeFileId]);
+  }, [activeFileId, activeFile]);
 
   // 打开文件夹
   const handleOpenFolder = useCallback(async () => {

@@ -37,17 +37,17 @@ function App() {
   const openFile = useCallback(async (filePath, forceNewTab = false) => {
     if (!window.electronAPI) return;
 
-    // 检查是否已打开（防止重复打开）
-    const existing = files.find(f => f.path === filePath);
-    if (existing) {
-      setActiveFileId(existing.id);
-      return;
-    }
-
     // 如果不是强制新tab，先检查当前文件是否有未保存的修改
     if (!forceNewTab && activeFile && activeFile.isModified) {
       const confirm = window.confirm(`${activeFile.name} has unsaved changes. Replace anyway?`);
       if (!confirm) return;
+    }
+
+    // 检查是否已打开（防止重复打开）- 只有在非强制新tab时才检查
+    const existing = files.find(f => f.path === filePath);
+    if (!forceNewTab && existing) {
+      setActiveFileId(existing.id);
+      return;
     }
 
     // 读取文件
@@ -64,17 +64,11 @@ function App() {
       };
 
       if (forceNewTab) {
-        // 双击：新开 tab
+        // Command+click：新开 tab（即使已打开）
         setFiles(prev => [...prev, newFile]);
         setActiveFileId(newFile.id);
       } else {
-        // 单击：替换当前文件（如果 forceNewTab 为 false）
-        if (activeFile && activeFile.isModified) {
-          // 已经在上面检查过了，但以防万一
-          const confirm = window.confirm(`${activeFile.name} has unsaved changes. Replace anyway?`);
-          if (!confirm) return;
-        }
-        // 关闭当前文件（如果是未保存的新文件），打开新文件
+        // 单击：替换当前文件
         setFiles(prev => {
           // 如果当前文件是新建未保存的，移除它
           const newFiles = prev.filter(f => f.id !== activeFileId);

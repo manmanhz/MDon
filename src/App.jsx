@@ -14,9 +14,12 @@ function App() {
   const [folderTree, setFolderTree] = useState([]);
 
   // UI 状态
-  const [showFileSidebar, setShowFileSidebar] = useState(true);
+  const [showFileSidebar, setShowFileSidebar] = useState(false); // 默认隐藏，文件夹打开后显示
   const [showToc, setShowToc] = useState(true);
   const [theme, setTheme] = useState('light');
+
+  // 文件夹是否已打开
+  const isFolderOpened = folderTree.length > 0;
 
   // 当前激活文件
   const activeFile = files.find(f => f.id === activeFileId);
@@ -34,13 +37,17 @@ function App() {
   const openFile = useCallback(async (filePath, forceNewTab = false) => {
     if (!window.electronAPI) return;
 
-    // 检查是否已打开（除非 forceNewTab）
-    if (!forceNewTab) {
-      const existing = files.find(f => f.path === filePath);
-      if (existing) {
-        setActiveFileId(existing.id);
-        return;
-      }
+    // 检查是否已打开（防止重复打开）
+    const existing = files.find(f => f.path === filePath);
+    if (existing) {
+      setActiveFileId(existing.id);
+      return;
+    }
+
+    // 如果不是强制新tab，先检查当前文件是否有未保存的修改
+    if (!forceNewTab && activeFile && activeFile.isModified) {
+      const confirm = window.confirm(`${activeFile.name} has unsaved changes. Replace anyway?`);
+      if (!confirm) return;
     }
 
     // 读取文件
@@ -55,10 +62,28 @@ function App() {
         isModified: false,
         isNew: false
       };
-      setFiles(prev => [...prev, newFile]);
-      setActiveFileId(newFile.id);
+
+      if (forceNewTab) {
+        // 双击：新开 tab
+        setFiles(prev => [...prev, newFile]);
+        setActiveFileId(newFile.id);
+      } else {
+        // 单击：替换当前文件（如果 forceNewTab 为 false）
+        if (activeFile && activeFile.isModified) {
+          // 已经在上面检查过了，但以防万一
+          const confirm = window.confirm(`${activeFile.name} has unsaved changes. Replace anyway?`);
+          if (!confirm) return;
+        }
+        // 关闭当前文件（如果是未保存的新文件），打开新文件
+        setFiles(prev => {
+          // 如果当前文件是新建未保存的，移除它
+          const newFiles = prev.filter(f => f.id !== activeFileId);
+          return [...newFiles, newFile];
+        });
+        setActiveFileId(newFile.id);
+      }
     }
-  }, [files]);
+  }, [files, activeFile, activeFileId]);
 
   // 关闭文件
   const closeFile = useCallback((fileId) => {
@@ -196,7 +221,7 @@ function App() {
       />
 
       <div className="app-body">
-        {showFileSidebar && (
+        {showFileSidebar && isFolderOpened && (
           <FileSidebar
             tree={folderTree}
             onFileClick={(path) => openFile(path, false)}
@@ -239,9 +264,11 @@ function App() {
           )}
         </span>
         <span className="status-right">
-          <button onClick={() => setShowFileSidebar(v => !v)} title="Toggle File Sidebar">
-            {showFileSidebar ? '◀' : '▶'} Files
-          </button>
+          {isFolderOpened && (
+            <button onClick={() => setShowFileSidebar(v => !v)} title="Toggle File Sidebar">
+              {showFileSidebar ? '◀' : '▶'} Files
+            </button>
+          )}
           <button onClick={() => setShowToc(v => !v)} title="Toggle TOC">
             {showToc ? '◀' : '▶'} TOC
           </button>

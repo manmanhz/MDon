@@ -21,7 +21,8 @@
   "license": "MIT",
   "build": {
     "appId": "com.monk.editor",
-    "productName": "Monk",
+    "productName": "MDon",
+    "icon": "build/icon01",
     "directories": {
       "output": "release"
     },

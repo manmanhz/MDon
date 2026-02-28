@@ -26,10 +26,10 @@ describe('FileSidebar', () => {
     expect(onFileClick).toHaveBeenCalledWith('/test/file2.md');
   });
 
-  it('calls onFileDoubleClick when file double clicked', () => {
+  it('calls onFileDoubleClick when file Command+clicked', () => {
     const onFileDoubleClick = vi.fn();
     render(<FileSidebar tree={mockTree} onFileClick={() => {}} onFileDoubleClick={onFileDoubleClick} />);
-    fireEvent.doubleClick(screen.getByText('file2.md'));
+    fireEvent.click(screen.getByText('file2.md'), { metaKey: true });
     expect(onFileDoubleClick).toHaveBeenCalledWith('/test/file2.md');
   });
 });

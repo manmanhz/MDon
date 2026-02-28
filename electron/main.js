@@ -223,13 +223,17 @@ ipcMain.handle('save-file', async (event, { filePath, content }) => {
 
 // IPC handler for opening folder dialog
 ipcMain.handle('open-folder', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory']
-  });
-  if (!result.canceled && result.filePaths.length > 0) {
-    return { success: true, folderPath: result.filePaths[0] };
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory']
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+      return { success: true, folderPath: result.filePaths[0] };
+    }
+    return { success: false };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
-  return { success: false };
 });
 
 // IPC handler for reading folder contents

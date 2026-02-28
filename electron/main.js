@@ -8,7 +8,11 @@ let currentFilePath = null;
 // Vite dev server URL
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 
+console.log('Starting Monk with args:', process.argv);
+
 function createWindow(filePathToOpen = null) {
+  console.log('Creating window, filePathToOpen:', filePathToOpen);
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -23,23 +27,43 @@ function createWindow(filePathToOpen = null) {
 
   // Load URL based on environment
   if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(VITE_DEV_SERVER_URL);
+    // In development, add file path as query param
+    if (filePathToOpen) {
+      const fileUrl = encodeURIComponent(filePathToOpen);
+      mainWindow.loadURL(`${VITE_DEV_SERVER_URL}?file=${fileUrl}`);
+    } else {
+      mainWindow.loadURL(VITE_DEV_SERVER_URL);
+    }
   } else {
     // Production: load from built files
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
-
-  // If a file was passed as argument, open it after window loads
-  if (filePathToOpen) {
-    mainWindow.webContents.on('did-finish-load', () => {
+    if (filePathToOpen) {
+      // Read file BEFORE loading, then inject immediately after page starts loading
+      let fileContent = '';
       try {
-        const content = fs.readFileSync(filePathToOpen, 'utf-8');
-        currentFilePath = filePathToOpen;
-        mainWindow.webContents.send('file-opened', { filePath: filePathToOpen, content });
+        fileContent = fs.readFileSync(filePathToOpen, 'utf-8');
       } catch (error) {
-        console.error('Error opening file:', error);
+        console.error('Error reading file:', error);
       }
-    });
+
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+
+      // Wait for page to be ready, then inject
+      mainWindow.webContents.on('did-finish-load', () => {
+        // Add longer delay to ensure React has mounted
+        setTimeout(() => {
+          const script = `
+            window.localStorage.setItem('monk_initial_file', '${filePathToOpen.replace(/'/g, "\\'")}');
+            window.localStorage.setItem('monk_initial_content', '${fileContent.replace(/'/g, "\\'").replace(/\n/g, "\\n")}');
+            console.log('[Main] Injected initial file data');
+            // Trigger custom event to notify app
+            window.dispatchEvent(new CustomEvent('monk-file-loaded'));
+          `;
+          mainWindow.webContents.executeJavaScript(script);
+        }, 1000);
+      });
+    } else {
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    }
   }
 }
 
@@ -71,6 +95,54 @@ function createMenu() {
               const content = fs.readFileSync(filePath, 'utf-8');
               currentFilePath = filePath;
               mainWindow.webContents.send('file-opened', { filePath, content });
+            }
+          }
+        },
+        {
+          label: 'Open Folder',
+          accelerator: 'CmdOrCtrl+Shift+O',
+          click: async () => {
+            const result = await dialog.showOpenDialog(mainWindow, {
+              properties: ['openDirectory']
+            });
+            if (!result.canceled && result.filePaths.length > 0) {
+              const folderPath = result.filePaths[0];
+              // Read folder contents
+              const readDir = (dirPath) => {
+                const items = fs.readdirSync(dirPath, { withFileTypes: true });
+                return items
+                  .filter(item => {
+                    if (item.name.startsWith('.')) return false;
+                    return true;
+                  })
+                  .map(item => {
+                    const fullPath = path.join(dirPath, item.name);
+                    if (item.isDirectory()) {
+                      return {
+                        name: item.name,
+                        path: fullPath,
+                        type: 'folder',
+                        children: readDir(fullPath)
+                      };
+                    }
+                    if (/\.(md|markdown|txt)$/i.test(item.name)) {
+                      return {
+                        name: item.name,
+                        path: fullPath,
+                        type: 'file'
+                      };
+                    }
+                    return null;
+                  })
+                  .filter(Boolean)
+                  .sort((a, b) => {
+                    if (a.type === 'folder' && b.type === 'file') return -1;
+                    if (a.type === 'file' && b.type === 'folder') return 1;
+                    return a.name.localeCompare(b.name);
+                  });
+              };
+              const tree = readDir(folderPath);
+              mainWindow.webContents.send('folder-opened', { folderPath, tree });
             }
           }
         },
@@ -144,21 +216,105 @@ ipcMain.handle('save-file', async (event, { filePath, content }) => {
   return { success: false };
 });
 
+// IPC handler for opening folder dialog
+ipcMain.handle('open-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  });
+  if (!result.canceled && result.filePaths.length > 0) {
+    return { success: true, folderPath: result.filePaths[0] };
+  }
+  return { success: false };
+});
+
+// IPC handler for reading folder contents
+ipcMain.handle('read-folder', async (event, folderPath) => {
+  try {
+    const readDir = (dirPath) => {
+      const items = fs.readdirSync(dirPath, { withFileTypes: true });
+      return items
+        .filter(item => {
+          // 过滤隐藏文件和常见不需要的文件
+          if (item.name.startsWith('.')) return false;
+          if (item.isDirectory()) return true;
+          return /\.(md|markdown|txt)$/i.test(item.name);
+        })
+        .map(item => {
+          const fullPath = path.join(dirPath, item.name);
+          if (item.isDirectory()) {
+            return {
+              name: item.name,
+              path: fullPath,
+              type: 'folder',
+              children: readDir(fullPath)
+            };
+          }
+          return {
+            name: item.name,
+            path: fullPath,
+            type: 'file'
+          };
+        })
+        .sort((a, b) => {
+          // 文件夹优先
+          if (a.type === 'folder' && b.type === 'file') return -1;
+          if (a.type === 'file' && b.type === 'folder') return 1;
+          return a.name.localeCompare(b.name);
+        });
+    };
+
+    const tree = readDir(folderPath);
+    return { success: true, tree, folderPath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// IPC handler for file read
+ipcMain.handle('read-file', async (event, filePath) => {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return { success: true, content, filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 app.whenReady().then(() => {
-  // Check for file path argument (skip first 2 args: electron and script path)
-  const args = process.argv.slice(2);
+  // Check for file path argument - use app.commandLine for better compatibility
+  const args = process.argv;
+  console.log('Process argv:', args);
+
+  // In packaged app, the structure is different
+  // Look for file arguments
   let filePathToOpen = null;
 
-  for (const arg of args) {
-    // If arg doesn't start with -, it's likely a file path
-    if (!arg.startsWith('-') && (arg.endsWith('.md') || arg.endsWith('.markdown') || arg.endsWith('.txt'))) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg.endsWith('.md') || arg.endsWith('.markdown') || arg.endsWith('.txt')) {
       filePathToOpen = arg;
       break;
     }
   }
 
+  console.log('File to open:', filePathToOpen);
   createWindow(filePathToOpen);
   createMenu();
+});
+
+// Handle open-file event (macOS standard way)
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  console.log('open-file event:', filePath);
+
+  if (mainWindow) {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      mainWindow.webContents.send('file-opened', { filePath, content });
+    } catch (error) {
+      console.error('Error opening file from open-file event:', error);
+    }
+  }
 });
 
 app.on('window-all-closed', () => {

@@ -8,12 +8,12 @@ console.log('[Preload] Initial file:', initialFile);
 // Expose file path and read function to renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   initialFile: initialFile,
-  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
-  saveFile: (filePath, content) => ipcRenderer.invoke('save-file', { filePath, content }),
+  readFile: (filePath) => ipcRenderer.invoke('read-file', filePath).catch(err => ({ success: false, error: err.message })),
+  saveFile: (filePath, content) => ipcRenderer.invoke('save-file', { filePath, content }).catch(err => ({ success: false, error: err.message })),
 
   // Folder APIs
-  openFolder: () => ipcRenderer.invoke('open-folder'),
-  readFolder: (folderPath) => ipcRenderer.invoke('read-folder', folderPath),
+  openFolder: () => ipcRenderer.invoke('open-folder').catch(err => ({ success: false, error: err.message })),
+  readFolder: (folderPath) => ipcRenderer.invoke('read-folder', folderPath).catch(err => ({ success: false, error: err.message })),
 
   // Event listeners
   onNewFile: (callback) => ipcRenderer.on('new-file', callback),

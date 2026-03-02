@@ -1,4 +1,4 @@
-# Monk
+# MDon
 
 一个类 Typora 的 Markdown 编辑器，基于 Electron + React + TipTap 构建。
 
@@ -40,15 +40,15 @@ npm run dev
 npm run build:mac
 ```
 
-打包输出: `release/Monk-1.0.0-arm64.dmg`
+打包输出: `release/MDon-1.0.0-arm64.dmg`
 
 ## 安装
 
-1. 挂载 DMG，将 `Monk.app` 拖入 `/Applications`
+1. 挂载 DMG，将 `MDon.app` 拖入 `/Applications`
 2. 添加命令行 alias:
 
 ```bash
-echo 'alias monk="open -a Monk"' >> ~/.zshrc
+echo 'alias monk="open -a MDon"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -58,7 +58,7 @@ source ~/.zshrc
 # 打开应用
 monk
 
-# 用 Monk 打开 Markdown 文件
+# 用 MDon 打开 Markdown 文件
 monk file.md
 monk ~/Documents/notes.md
 ```
@@ -90,7 +90,7 @@ monk/
 │   └── utils/
 │       └── parser.js
 ├── release/
-│   └── Monk-1.0.0-arm64.dmg   # 安装包
+│   └── MDon-1.0.0-arm64.dmg   # 安装包
 └── package.json
 ```
 

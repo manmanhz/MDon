@@ -8,7 +8,7 @@ let currentFilePath = null;
 // Vite dev server URL
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 
-console.log('Starting Monk with args:', process.argv);
+console.log('Starting MDon with args:', process.argv);
 
 // Shared helper function to read directory contents recursively
 function readDir(dirPath) {
@@ -56,7 +56,7 @@ function createWindow(filePathToOpen = null) {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true
     },
-    title: 'Monk'
+    title: 'MDon'
   });
 
   // Load URL based on environment

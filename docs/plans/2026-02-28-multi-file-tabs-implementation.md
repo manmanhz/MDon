@@ -1,8 +1,8 @@
-# Monk 多文件与文件夹支持 - 实现计划
+# MDon 多文件与文件夹支持 - 实现计划
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 为 Monk 添加文件夹浏览和多文件 Tab 切换功能
+**Goal:** 为 MDon 添加文件夹浏览和多文件 Tab 切换功能
 
 **Architecture:** 纯 React State 管理，在现有 TipTapEditor 基础上改造
 
